@@ -59,11 +59,63 @@ def write_time_series_csv(data, output_filename):
     print(f"Time series CSV written to: {output_filename}")
 
 def process_proficiency_by_skill(raw_data, valid_skills, allowed_proficiencies):
-    # Implement proficiency processing logic
+    """
+        Process proficiency data by skill from raw JSON data.
+    """
+    if "scores" not in raw_data:
+        print("No 'scores' key found in raw data.")
+        return []
+    scores = raw_data["scores"]
+    skill_date = {}
+
+    for i, rec in enumerate(scores):
+        if "skill" not in rec or "score" not in rec:
+            continue
+        skill = rec["skill"]
+        try:
+            score_val = float(rec["score"])
+        except:
+            continue
+
+        if score_val not in allowed_proficiencies:
+            continue
+
+        if skill not in valid_skills:
+            continue
+        
+        if skill not in skill_data:
+            skill_data[skill] = {"count": 0, "scores": []}
+        
+        skill_data[skill]["count"] += 1
+        skill_data[skill]["scores"].append(score_val)
+    
+    aggregated = []
+    for skill, stats in skill_data.items():
+        avg_score = mean(stats["scores"]) if stats["scores"] else 0
+        aggregated.append({
+            "skill": skill,
+            "count": stats["count"],
+            "average_score": round(avg_score, 2)
+        })
+    return aggregated
 
 def write_proficiency_csv(aggregated, output_filename):
-    # Implement CSV writing logic
+    """
+        Write proficiency data to a CSV file
+    """
 
+    if not aggregated:
+        print("No valid proficiency data to write.")
+        return
+    fieldnames = ["skill", "count", "average_score"]
+    with open(output_filename, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for rec in aggregated:
+            writer.writerow(rec)
+    print(f"Proficiency CSV written to: {output_filename}")
+
+        
 def visualize_proficiency(aggregated, output_image):
     # Implement visualization logic
 
