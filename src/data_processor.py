@@ -117,5 +117,27 @@ def write_proficiency_csv(aggregated, output_filename):
 
         
 def visualize_proficiency(aggregated, output_image):
-    # Implement visualization logic
+    """
+        Visualize proficiency data using a scatter plot
+    """
 
+    if not aggregated:
+        print("No data to visualize.")
+        return
+    skills = [rec["skill"] for rec in aggregated]
+    avg_scores = [rec["average_score"] for rec in aggregated]
+    counts = [rec["count"] for rec in aggregated]
+
+    plt.figure(figsize=(10, 6))
+    plt.scatter(skills, avg_scores, s=[c * 50 for c in counts], alpha=0.6)
+    plt.xlabel("Skill")
+    plt.ylabel("Average Score")
+    plt.title("Proficiency by Skill (Bubble Size = Number of Records)")
+    plt.grid(True)
+
+    for i, count in enumerate(counts):
+        plt.annotate(f"{count}", (skills[i], avg_scores[i]),
+                     textcoords="offset points", xytext=(0,10), ha='center')
+    plt.savefig(output_image)
+    plt.show()
+    print(f"Visualization saved as {output_image}")
