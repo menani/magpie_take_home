@@ -1,5 +1,8 @@
 import json
 import pandas as pd
+import csv
+import matplotlib.pyplot as plt
+from statistics import mean
 
 def load_json_file(file_path):
     # Load JSON data from a file
@@ -15,7 +18,6 @@ def process_time_series(raw_data):
     """
     Process time series data from raw JSON data.
     """
-
     if "scores" not in raw_data:
         print("Error: 'scores' key not found in the data.")
         return []
@@ -23,7 +25,7 @@ def process_time_series(raw_data):
     scores = raw_data["scores"]
     cleaned_data = []
 
-    for i,rec in enumerate(scores):
+    for i, rec in enumerate(scores):
         if "skill" not in rec:
             print(f"Skipping record {i+1}: missing 'skill' key.")
             continue
@@ -31,19 +33,20 @@ def process_time_series(raw_data):
             print(f"Skipping record {i+1}: missing 'score' key.")
             continue
         try:
-            score = float(rec["score"])
+            score_val = float(rec["score"])
         except Exception:
             print(f"Skipping record {i+1}: invalid score '{rec.get('score')}'")
             continue
         rec["score"] = score_val
-        rec[record_number] = i + 1
-        
-        cleand_data.sort(key=lambda x: x["record_number"])
-        return cleaned_data
+        rec["record_number"] = i + 1
+        cleaned_data.append(rec)
+    
+    cleaned_data.sort(key=lambda x: x["record_number"])
+    return cleaned_data
 
 def write_time_series_csv(data, output_filename):
     """
-        Write processed time series data to a CSV file.
+    Write processed time series data to a CSV file.
     """
     if not data:
         print("No valid time series data to write.")
@@ -60,13 +63,13 @@ def write_time_series_csv(data, output_filename):
 
 def process_proficiency_by_skill(raw_data, valid_skills, allowed_proficiencies):
     """
-        Process proficiency data by skill from raw JSON data.
+    Process proficiency data by skill from raw JSON data.
     """
     if "scores" not in raw_data:
         print("No 'scores' key found in raw data.")
         return []
     scores = raw_data["scores"]
-    skill_date = {}
+    skill_data = {}
 
     for i, rec in enumerate(scores):
         if "skill" not in rec or "score" not in rec:
@@ -74,7 +77,7 @@ def process_proficiency_by_skill(raw_data, valid_skills, allowed_proficiencies):
         skill = rec["skill"]
         try:
             score_val = float(rec["score"])
-        except:
+        except Exception:
             continue
 
         if score_val not in allowed_proficiencies:
@@ -101,9 +104,8 @@ def process_proficiency_by_skill(raw_data, valid_skills, allowed_proficiencies):
 
 def write_proficiency_csv(aggregated, output_filename):
     """
-        Write proficiency data to a CSV file
+    Write proficiency data to a CSV file.
     """
-
     if not aggregated:
         print("No valid proficiency data to write.")
         return
@@ -115,12 +117,10 @@ def write_proficiency_csv(aggregated, output_filename):
             writer.writerow(rec)
     print(f"Proficiency CSV written to: {output_filename}")
 
-        
 def visualize_proficiency(aggregated, output_image):
     """
-        Visualize proficiency data using a scatter plot
+    Visualize proficiency data using a scatter plot.
     """
-
     if not aggregated:
         print("No data to visualize.")
         return
